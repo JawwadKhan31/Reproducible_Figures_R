@@ -1,0 +1,330 @@
+---
+title: "Reproducible Figures in R Assignment"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-11-25"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(palmerpenguins)
+library(ggplot2)
+library(dplyr)
+library(tinytex)
+library(tidyverse)
+library(plotly)
+```
+
+## QUESTION 01: Data Visualisation for Science Communication
+
+*Create a figure using the Palmer Penguin dataset that is correct but badly communicates the data. **Do not make a boxplot**.*
+
+*Use the following references to guide you:*
+
+-   [*https://www.nature.com/articles/533452a*](https://www.nature.com/articles/533452a){.uri}
+-   [*https://elifesciences.org/articles/16800*](https://elifesciences.org/articles/16800){.uri}
+
+*Note: Focus on visual elements rather than writing misleading text on it.*
+
+### a) Provide your figure here:
+
+```{r bad figure code, echo=FALSE}
+
+# Load the required library
+library(tidyverse)
+
+# Load the dataset
+penguins <- read.csv('/Users/jawwadkhan/Desktop/penguins_clean.csv')
+
+# Group data by island and count occurrences
+island_counts <- penguins %>% 
+  group_by(island) %>% 
+  summarise(Count = n())
+
+# Create a pie chart
+pie(island_counts$Count, labels = island_counts$island, main = 'Distribution of Penguins Across Islands')
+```
+
+### b) Write about how your design choices mislead the reader about the underlying data (200-300 words).
+
+*Include references.*
+
+The provided figure is a pie chart representing the distribution of penguins across different islands. While pie charts can be effective in conveying the distribution of parts within a whole, in this context, the design choices made in the figure can mislead the reader about the underlying data.
+
+Firstly, pie charts are typically used to represent parts of a whole when the categories being compared are mutually exclusive and collectively exhaustive. In the case of penguin distribution across islands, the categories (islands) are mutually exclusive, but they are not collectively exhaustive. This is because the dataset may not include all possible islands where penguins could reside. Using a pie chart implies that the provided islands are the only ones, which may not be the case in reality. This misrepresentation can lead to a false understanding of the penguin distribution ([Nature](https://www.nature.com/articles/533452a), [eLife](https://elifesciences.org/articles/16800)).
+
+Secondly, the figure lacks data labels that indicate the exact counts or percentages for each island. Without these labels, it is challenging for the reader to discern the specific distribution of penguins on each island. While the main title mentions the distribution, the absence of data labels makes it difficult to quantify or compare the number of penguins on different islands accurately.
+
+To improve the representation of the data, an alternative visualisation such as a bar chart or stacked bar chart could be used. These types of charts would clearly display the counts or percentages of penguins on each island without implying that these islands are the only ones. Additionally, providing numerical values alongside the bars would enhance the reader's understanding of the data ([Nature](https://www.nature.com/articles/533452a), [eLife](https://elifesciences.org/articles/16800)).
+
+------------------------------------------------------------------------
+
+## QUESTION 2: Data Pipeline
+
+*Write a data analysis pipeline in your .rmd RMarkdown file. You should be aiming to write a clear explanation of the steps as well as clear code.*
+
+*Your code should include the steps practiced in the lab session:*
+
+-   *Load the data*
+
+-   *Appropriately clean the data*
+
+-   *Create an Exploratory Figure (**not a boxplot**)*
+
+-   *Save the figure*
+
+-   ***New**: Run a statistical test*
+
+-   ***New**: Create a Results Figure*
+
+-   *Save the figure*
+
+*An exploratory figure shows raw data, such as the distribution of the data. A results figure demonstrates the stats method chosen, and includes the results of the stats test.*
+
+*Between your code, communicate clearly what you are doing and why.*
+
+*Your text should include:*
+
+-   *Introduction*
+
+-   *Hypothesis*
+
+-   *Stats Method*
+
+-   *Results*
+
+-   *Discussion*
+
+-   *Conclusion*
+
+*You will be marked on the following:*
+
+### a) Your code for readability and functionality
+
+### b) Your figures for communication
+
+### c) Your text communication of your analysis
+
+*Below is a template you can use.*
+
+-----------------------------------------
+
+## Introduction
+
+The palmerpenguins dataset is an open dataset containing information about various penguin species. In this analysis, we aim to explore the relationship between a penguin's culmen length (culmen_length_mm) and its culmen depth (culmen_depth_mm).
+
+## Hypothesis
+
+We hypothesise that penguins with longer culmens (culmen_length_mm) will also have deeper culmens (culmen_depth_mm).
+
+## Data Pipeline
+
+```{r}
+# Load the required libraries
+library(tidyverse)
+library(plotly)
+library(dplyr)
+
+# Load the penguins dataset from the palmerpenguins package
+library(palmerpenguins)
+penguins <- penguins
+
+# Data Cleaning: Remove rows with missing values in the culmen_length_mm or culmen_depth_mm columns
+penguins_clean <- penguins %>%
+  filter(!is.na(culmen_length_mm), !is.na(culmen_depth_mm))
+
+# Exploratory Figure: Create an interactive scatter plot to explore the relationship between culmen length and culmen depth using plotly
+exploratory_plot <- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm, text = paste("Species: ", species))) + 
+  geom_point(aes(color = species)) +
+  theme_minimal() +
+  labs(title = "Exploratory Analysis of Penguin Culmen Length and Depth",
+       x = "Culmen Length (mm)", y = "Culmen Depth (mm)") +
+  scale_color_manual(values = c("Adelie" = "red", "Chinstrap" = "blue", "Gentoo" = "green")) +
+  theme(legend.position = "bottom")
+
+# Convert the exploratory plot to a plotly object for interactivity
+exploratory_plot <- ggplotly(exploratory_plot)
+
+# Display the interactive exploratory plot
+exploratory_plot
+
+# Save the exploratory figure
+ggsave("exploratory_figure.png")
+
+# Statistical Methods: Perform a Pearson correlation test to assess the correlation between culmen length and culmen depth
+correlation_result <- cor.test(penguins_clean$culmen_length_mm, penguins_clean$culmen_depth_mm)
+
+# Results & Discussion: Create a results figure showing the correlation using plotly
+results_plot <- ggplot(penguins_clean, aes(x = culmen_length_mm, y = culmen_depth_mm, text = paste("Species: ", species))) +
+  geom_point(aes(color = species)) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(title = "Correlation Analysis of Penguin Culmen Length and Depth",
+       x = "Culmen Length (mm)", y = "Culmen Depth (mm)") +
+  scale_color_manual(values = c("Adelie" = "red", "Chinstrap" = "blue", "Gentoo" = "green")) +
+  theme(legend.position = "bottom")
+
+# Convert the results plot to a plotly object for interactivity
+results_plot <- ggplotly(results_plot)
+
+# Add species labels to the side of the plot
+results_plot <- results_plot %>%
+  layout(annotations = list(
+    x = max(penguins_clean$culmen_length_mm) + 5, # Adjust the x-coordinate as needed
+    y = penguins_clean$culmen_depth_mm,
+    text = penguins_clean$species,
+    showarrow = FALSE,
+    xanchor = "left"
+  ))
+
+# Display the interactive results plot
+results_plot
+
+# Save the results figure
+ggsave("results_figure.png")
+
+# Display the results of the correlation test
+correlation_result
+
+```
+## Results
+
+Discussion of results:
+
+The exploratory scatter plot provides an initial visual insight into the relationship between culmen length and culmen depth. Points are colored by species, allowing us to observe if there are any species-specific patterns.
+
+The results of the Pearson correlation test (correlation_result) will provide information about the strength and direction of the correlation. If the correlation coefficient (r) is close to 1, it suggests a strong positive correlation, indicating that penguins with longer culmens tend to have deeper culmens. Conversely, if the coefficient is close to -1, it suggests a strong negative correlation, meaning that longer culmens are associated with shallower culmens. A coefficient close to 0 indicates little to no correlation.
+
+The p-value from the correlation test will help determine if the observed correlation is statistically significant. A small p-value (< 0.05) suggests that the correlation is unlikely due to random chance, while a larger p-value suggests the opposite.
+
+The results figure with the regression line further visualises the direction of the correlation. The legend distinguishes between species, which can help identify if the correlation differs among species.
+
+
+## Statistical Analyses
+
+Discussion of Statistics:
+I performed a Pearson correlation test to assess the correlation between culmen length and culmen depth.
+The result of the correlation test provides us with a correlation coefficient (r), a p-value, and other statistics.
+The correlation coefficient (r) tells us the strength and direction of the linear relationship between the two variables. If r is close to 1, it indicates a strong positive correlation, while if it's close to -1, it indicates a strong negative correlation. A value close to 0 suggests no significant correlation.
+The p-value helps us determine whether the observed correlation is statistically significant. A small p-value (typically < 0.05) suggests that the correlation is significant, while a large p-value suggests that it may be due to random chance.
+In the results figure, we also added a linear regression line to visualize the direction of the relationship between culmen length and culmen depth.
+
+## Conclusion
+
+In conclusion, this analysis aimed to explore and understand the relationship between a penguin's culmen length (culmen_length_mm) and its culmen depth (culmen_depth_mm) using the palmerpenguins dataset. The following key findings and insights have emerged from our analysis:
+
+- Exploratory Analysis: The exploratory scatter plot provided a visual representation of the data, showing the distribution of penguin culmen lengths and depths. Each data point was color-coded by species, allowing us to identify species-specific patterns. From the exploratory plot, we observed variations in culmen length and depth among different penguin species.
+
+- Correlation Analysis: We conducted a Pearson correlation test to quantitatively assess the relationship between culmen length and culmen depth. The correlation coefficient (r) was used to determine the strength and direction of the linear relationship. The results showed whether penguins with longer culmens tend to have deeper culmens or if there was no significant correlation.
+
+- Statistical Significance: The p-value from the correlation test was utilised to assess the statistical significance of the observed correlation. A small p-value (typically < 0.05) indicated that the correlation was unlikely due to random chance, while a larger p-value suggested the opposite.
+
+- Results Figure: To visualise the correlation, we created a results figure that included a scatter plot with a linear regression line. This graphically demonstrated the direction of the relationship between culmen length and culmen depth and allowed us to observe how different penguin species contributed to the overall correlation pattern.
+
+In summary, our analysis provides valuable insights into the physical characteristics of penguins and their potential correlations, considering species-specific variations. While the exploratory analysis revealed patterns and differences among species, the correlation analysis quantified the relationship between culmen length and depth. Further exploration and research could investigate the specific ecological and evolutionary factors driving these variations in penguin culmen morphology across species.
+
+--------------------------------------
+
+## QUESTION 3: Open Science
+
+### a) GitHub
+
+*Upload your RProject you created for **Question 2** and any files and subfolders used to GitHub. Do not include any identifiers such as your name. Make sure your GitHub repo is public.*
+
+*GitHub link:* https://github.com/anonymous-user31/Reproducible_Figures_R
+
+*You will be marked on your repo organisation and readability.*
+
+### b) Share your repo with a partner, download, and try to run their data pipeline.
+
+*Partner's GitHub link:* https://github.com/anonymous-student1/reproducible_science_and_figures
+
+*You **must** provide this so I can verify there is no plagiarism between you and your partner.*
+
+### c) Reflect on your experience running their code. (300-500 words)
+
+-   *What elements of your partner's code helped you to understand their data pipeline?*
+
+-   *Did it run? Did you need to fix anything?*
+
+-   *What suggestions would you make for improving their code to make it more understandable or reproducible, and why?*
+
+-   *If you needed to alter your partner's figure using their code, do you think that would be easy or difficult, and why?*
+
+Running my partner's code provided a clear and structured data pipeline for analysing the palmerpenguins dataset and testing a specific hypothesis. Several elements of the code were helpful in understanding the data pipeline:
+
+Package Loading and Data Storage: The code began by loading the necessary packages, which is essential for reproducibility. Additionally, it stored the raw data as a CSV file, maintaining a record of the original data, which is a good practice to ensure data integrity.
+
+Data Cleaning: The code included a separate script for data cleaning, which helps maintain code organisation. The cleaning function removed unnecessary columns and modified column names for better readability, which is crucial for reducing errors in further analysis.
+
+Data Exploration: The code provided exploratory data analysis (EDA) by creating histograms to visualise the distribution of culmen length and body mass for different penguin species and sexes. These plots aided in understanding the dataset and the potential relationships between variables.
+
+Hypothesis and Statistical Methods:  The code stated a clear hypothesis about the correlation between culmen length and body mass in different penguin species. It also filtered the data for each species separately, which is important when dealing with species of significantly different sizes. The code performed statistical tests to check data distribution and applied transformations when necessary. Lastly, it conducted linear regression analysis for each species separately, providing R-squared values and p-values for interpretation.
+
+Results and Plotting: The code included functions for plotting the results, making it easy to visualise and interpret the relationships between culmen length and body mass for each species.
+
+Problems with code:
+
+The code ran without any issues, and I did not need to fix anything. It was well-organised and had informative comments and explanations throughout, which greatly contributed to its readability.
+
+To make the code even more understandable and reproducible, I would suggest the following improvements:
+
+Function Documentation:  While the code has separate script files for cleaning, data transformations, models, and plotting, adding documentation to the functions within these scripts would enhance understanding. Clear comments describing the purpose and input/output of each function can be very helpful.
+
+Variable Names:  Some variable names could be more descriptive. For example, using longer, more informative variable names can improve code readability, especially for those who are not familiar with the dataset.
+
+Data Visualisation: Adding more comments explaining the significance of the visualizations and how they relate to the hypothesis would make the code even more informative.
+
+If I needed to alter my partner's figure using their code, it would likely be relatively easy. The code provided functions for plotting the results, and if I wanted to customise the appearance or add additional elements to the plots, I could do so within those functions. However, to make this process even more user-friendly, my partner could consider adding optional parameters to the plotting functions to allow users to customize plot aesthetics without modifying the code directly.
+
+### d) Reflect on your own code based on your experience with your partner's code and their review of yours. (300-500 words)
+
+-   *What improvements did they suggest, and do you agree?*
+
+
+1. Statistical Test and Explanation:**
+   - The feedback suggested that the t-test may not work for datasets with more than two species. Instead, my partner recommended using `aov()`, which can handle multiple levels of a grouping factor. I agree with this suggestion. Using an appropriate statistical test that accounts for the number of species in the dataset is essential for accurate analysis.
+
+   - Adding a summary of the statistical test results, including p-values for the interaction of species and bill length, is also a valuable suggestion. This addition would provide more detailed insights into the relationships between variables.
+
+2. Explanation and Clarity:
+   - The feedback proposed including more explanations throughout the code to clarify each step, especially for plot outputs and statistical tests. I completely agree with this suggestion. Adding explanations enhances the text communication of figures and analysis, making it easier for readers to understand the code and its purpose.
+
+3. Linking Results Figure:
+   - The feedback appreciated the linkage between the results figure and the statistical test, which provides clarity about the analysis's objective. I agree with this positive feedback and believe that such clear connections between analysis components are important for a comprehensive understanding of the workflow.
+
+4. Chunk Structure and Subheadings:
+   - The feedback recommended breaking the code into separate chunks for different purposes and adding subheadings to outline the plan. I agree with this suggestion. Organising code into distinct sections and providing subheadings improves code readability and structure, making it easier to follow.
+
+5. Improved Directory Structure:
+   - The feedback suggested creating a more structured working directory with dedicated folders for data cleaning, plotting functions, and statistical functions. I agree with this suggestion, especially for larger projects. A well-organised directory structure helps maintain code and data files, making it more manageable in the long run.
+
+In summary, I agree with the suggested improvements provided in the feedback. They enhance the overall quality, clarity, and organization of the code and analysis, making it more accessible and maintainable.
+
+
+-   *What did you learn about writing code for other people?*
+
+Based on the project and valuable feedback received, I've learned important insights into writing code for a collaborative and reproducible environment, aligning with recommendations from online sources such as [Nature](https://www.nature.com/articles/533452a) and [eLife](https://elifesciences.org/articles/16800):
+
+1. Clarity and Documentation Matter: Writing code that is clear and well-documented is paramount. It is essential to add meaningful comments and explanations at each stage of the code. These comments serve as a guide, helping others understand the purpose, logic, and contribution of each code segment to the overall analysis.
+
+2. Audience-Centric Approach: Considering the expertise level of the audience is crucial. The code should be written with the audience's knowledge in mind. Providing contextual explanations that cater to the audience's familiarity with the subject matter can significantly enhance accessibility.
+
+3. Selecting Appropriate Statistical Methods: The importance of choosing the right statistical test cannot be overstated. It's vital to opt for statistical tests that are suitable for the data structure and research questions at hand. In response to feedback, I have recognized the significance of selecting appropriate tests, such as using `aov()` for scenarios with multiple levels of a grouping factor, instead of a `t-test`.
+
+4. Structured Code Organisation: Dividing the code into distinct sections, each with a clear objective, greatly enhances code readability. The inclusion of subheadings and well-defined code chunks facilitates a step-by-step understanding of the code's flow.
+
+5. Directory Structure for Project Organisation: A well-structured working directory with dedicated folders for different aspects of the analysis, such as data cleaning, plotting functions, and statistical procedures, is indispensable. This approach enhances project organization and aids in code maintenance.
+
+6. Effective Data Visualisation: Visualisations are powerful tools for conveying results. Creating informative, visually appealing plots helps communicate complex information more effectively, making the analysis more understandable to collaborators and stakeholders.
+
+7. Establishing Connections: Clear linkages between various components of the analysis are essential. For instance, connecting results figures to the corresponding statistical tests helps readers follow the analysis's progression and grasp its objectives more readily.
+
+8. Prioritising Reproducibility: Reproducibility is a cornerstone of collaborative research. To ensure code can be easily replicated by others, I have incorporated the use of packages like `palmerpenguins` and provided explicit instructions for package installation and data loading.
+
+In conclusion, writing code for collaborative projects involves not only producing functional code but also prioritising clarity, thorough documentation, and thoughtful design to foster understanding and facilitate collaboration. These practices align with the reproducible code guidelines advocated by trusted sources such as [Nature](https://www.nature.com/articles/533452a) and [eLife](https://elifesciences.org/articles/16800).
+
+
+
